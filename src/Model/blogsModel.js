@@ -31,22 +31,18 @@ const ObjectId = mongoose.Schema.Types.ObjectId
             type: String,
             trim: true
         }],
-        deletedAt: {
-            type:Date
-        },
+        deletedAt:Date,
         isDeleted: {
             type: Boolean,
             default: false
         },
-        publishedAt: {
-            type: Date
-        },
+        publishedAt:Date,
         isPublished: {
             type: Boolean,
             default: false
         }
     
-    }, { timestamps: true })
+    }, { timestamps: true }) 
     
 module.exports = mongoose.model('BlogProjectOne', blogSchema)
 

@@ -8,10 +8,11 @@ const createAuthor=async function(req,res){
     try{
     //     let {email}=req.body
     // if(!emailRegex(email)) return res.status(400).send({status:false,data:"Email is Invalid"})
-
-
     const data=req.body
     let{fname,lname,title,email,password}=data
+        if(Object.keys(data).length===0) return res.status(400).send({status:false,message:"The Body Can't be Empty"})
+
+   
     if(!lname) return res.status(400).send({status:false,message:"The last name is required"})
     if(!fname) return res.status(400).send({status:false,message:"The first name is required"})
     if(!title) return res.status(400).send({status:false,message:"The title is required"})
