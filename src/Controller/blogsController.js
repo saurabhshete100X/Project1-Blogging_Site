@@ -43,7 +43,7 @@ const createBlogs = async function (req, res) {
     const createBlog = await blogSchema.create(data);
     res.status(201).send({ status: true, data: createBlog });
   } catch (err) {
-    res.status(500).send({ status: false, data: err.message });
+   return res.status(500).send({ status: false, data: err.message });
   }
 };
 
@@ -74,17 +74,21 @@ const getAllBlogs = async function (req, res) {
           { subcategory: subcategory },
         ],
       });
-      let validatorAuthorId=await blogSchema.findById(authorId).select({authorId:1,_id:0})
+      let validatorAuthorId=await blogSchema.findById({authorId:authorId}).select({authorId:1})
+      console.log(validatorAuthorId)
       if(validatorAuthorId){ return res.status(200).send({ status: true, data: search }) }
-      else{
-        res.status(404).send({ status: false, data: "the author id not found" });
+      else if(!validatorAuthorId){
+        return res.status(404).send({ status: false, data: "the author id not found" });
     }
-        if (tags==="") {
-            return res.status(400).send({ status: false, msg: "tags are empty!" })
-        }
+    else{
+        if(!isValid(authorId)){ return res.status(400).send({ status: false, data: "the author Id is required" });}
+    }
+        // if (tags==="") {
+        //     return res.status(400).send({ status: false, msg: "tags are empty!" })
+        // }
 
     //   console.log(validatorAuthorId)
-    if(!isValid(authorId)) return res.status(400).send({ status: false, data: "the author Id is required" });
+    
    
       // if(Object.keys(data)===0) return res.status(400).send({ status: false, message: "The query can't be Empty" });
 
@@ -131,11 +135,10 @@ const deleteBlog = async function (req, res) {
     let blogId = req.params.blogId;
     let deletedoc = await blogSchema
       .findOne({ _id: blogId })
-      .select({ isDeleted: 1 });
+      .select({ isDeleted: 1,_id:0 });
+
     if (!deletedoc.isDeleted == false)
-      return res
-        .status(404)
-        .send({ status: false, data: "the id Does't Exist" });
+      return res.status(404).send({ status: false, data: "the id Does't Exist" });
 
     let deleteDoc = await blogSchema.findOneAndUpdate(
       { _id: blogId },
@@ -144,7 +147,7 @@ const deleteBlog = async function (req, res) {
     );
     res.status(200).send();
   } catch (err) {
-    res.status(500).send({ status: false, data: err.message });
+    return res.status(500).send({ status: false, data: err.message });
   }
 };
 
@@ -172,11 +175,11 @@ for(let i=0;i<deleteBykey.length;i++){
   let deleteOne=await blogSchema.findByIdAndUpdate({_id:arr}, 
     {$set:{isDeleted:true}},
         {new:true})
-  res.status(200).send({status:true,data:deleteOne})
+ return res.status(200).send({status:true,data:deleteOne})
 
 }
 catch(err){
-    res.status(500).send({status:false,data:err.message})
+  return  res.status(500).send({status:false,data:err.message})
 }
 }
 
