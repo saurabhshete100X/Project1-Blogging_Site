@@ -1,5 +1,5 @@
 const authorModel=require('../Model/authorModel')
-let {isValidEmail,isValid,isValidPassword,isValidName}=require('../Validation/validator')
+let {isValidEmail,isValid,isValidPassword,isValidName}=require('../Validation/validatorAuthor')
 
 const validator=require("validator")
 
