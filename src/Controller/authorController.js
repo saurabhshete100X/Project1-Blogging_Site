@@ -1,5 +1,6 @@
 const authorModel=require('../Model/authorModel')
 let {isValidEmail,isValid,isValidPassword,isValidName}=require('../Validation/validatorAuthor')
+let jwt=require('jsonwebtoken')
 
 const validator=require("validator")
 
@@ -47,5 +48,30 @@ const createAuthor=async function(req,res){
     }
 }
 
+let loginAuthor=async function(req,res){
+    try{
+    let body=req.body
+    let {email,password}=body
+
+    let validLogin=await authorModel.findOne({email:email,password:password})
+    if(!validLogin) return res.status(400).send({status:false,data:"The cridentials are Incorrect"})
+
+    let id=validLogin._id
+    let token=jwt.sign({
+        userId:id.toString(),
+        name:"Group 68",
+        members:"4",
+    },"our_first_project")
+    res.header('x-api-key',token)
+    res.status(200).send({status:true,data:token})
+
+}
+catch(err){
+    return  res.status(500).send(err.message)
+}
+}
+
+
 
 module.exports.createAuthor=createAuthor
+module.exports.loginAuthor=loginAuthor

@@ -1,6 +1,7 @@
 const blogSchema = require("../Model/blogsModel");
 const authorModel = require("../Model/authorModel");
 let { isValid } = require("../Validation/validatorBlog");
+let mongoose = require("mongoose");
 const createBlogs = async function (req, res) {
   try {
     const data = req.body;
@@ -43,72 +44,64 @@ const createBlogs = async function (req, res) {
     const createBlog = await blogSchema.create(data);
     res.status(201).send({ status: true, data: createBlog });
   } catch (err) {
-   return res.status(500).send({ status: false, data: err.message });
+    return res.status(500).send({ status: false, data: err.message });
   }
 };
 
 //Get Blogs
 const getAllBlogs = async function (req, res) {
   try {
-    let data = req.query;
-    let { authorId, tags, category, subcategory } = data;
+    const data = req.query;
 
-    // let Author = await authorModel.findById(authorId);
-    // if (!Author) return res.status(400).send({ status: false, message: "Author_Id not found In DB" });
-
-    let alldetails = await blogSchema.find({
-      isDeleted: false,
-      isPublished: true,
-    }); //find array of object
-    if (!alldetails.length > 0) {
-      return res.status(404).send({ status: false, data: "No document found" });
-
-      //   console.log(alldetails)
-    } else {
-      // return res.status(200).send({status:true,data:alldetails})
-      let search = await blogSchema.find({
-        $or: [
-          { authorId: authorId },
-          { tags: tags },
-          { category: category },
-          { subcategory: subcategory },
-        ],
+    //Validating data is empty or not
+    if (Object.keys(data).length == 0) {
+      const blog = await blogSchema.find({
+        isPublished: true,
+        isDeleted: false,
       });
-      let validatorAuthorId=await blogSchema.findById({authorId:authorId}).select({authorId:1})
-      console.log(validatorAuthorId)
-      if(validatorAuthorId){ return res.status(200).send({ status: true, data: search }) }
-      else if(!validatorAuthorId){
-        return res.status(404).send({ status: false, data: "the author id not found" });
+      if (blog.length == 0) {
+        return res
+          .status(404)
+          .send({
+            status: false,
+            msg: "Blog doesn't Exists, field is required.",
+          });
+      }
+      res.status(200).send({ status: true, data: blog });
     }
-    else{
-        if(!isValid(authorId)){ return res.status(400).send({ status: false, data: "the author Id is required" });}
+    //get data by query param
+    if (Object.keys(data).length != 0) {
+      data.isPublished = true;
+      data.isDeleted = false;
+      //console.log(data)
+      let getBlog = await blogSchema.find(data).populate("authorId");
+      if (getBlog.length == 0) {
+        return res
+          .status(404)
+          .send({
+            status: false,
+            msg: "No such blog exist, Please provide correct data.",
+          });
+      }
+      res.status(200).send({ status: true, data: getBlog });
     }
-        // if (tags==="") {
-        //     return res.status(400).send({ status: false, msg: "tags are empty!" })
-        // }
-
-    //   console.log(validatorAuthorId)
-    
-   
-      // if(Object.keys(data)===0) return res.status(400).send({ status: false, message: "The query can't be Empty" });
-
-    }
-}
-   catch (error) {
-   return res.status(500).send(error.message);
+  } catch (error) {
+    res.status(500).send({ status: false, Error: error.message });
   }
-}
+};
 
 const updateBlog = async function (req, res) {
   try {
-    // let data = req.body;
-    // let { tags, body, title, subcategory } = data;
-    // let saveddata= await blogSchema.findOneAndUpdate({_id:req.params.blogId},{title,body,$addToSet:{subcategory:subcategory,tags:tags}},{new:true})
-    // let saveddata= await blogSchema.findOneAndUpdate({_id:req.params.blogId},{title,body,$push:{subcategory:subcategory,tags:tags}},{new:true})
-    // let updated=await blogSchema.findOneAndUpdate({_id:req.params.blogId},{$set:{isPublished:true,publishedAt:new Date()}},{new:true})
-    // let updatePublish = {publishedat:Date.now},{isPublished:true}
-
     const blogId = req.params.blogId;
+    if (!blogId)
+      return res
+        .status(400)
+        .send({ status: true, data: "the blogId is requried" });
+    let blogIdValid = await blogSchema.findById(blogId);
+    if (!blogIdValid)
+      return res
+        .status(400)
+        .send({ status: true, data: "the blog does not Exist" });
     const blogData = req.body;
     let blog = await blogSchema.findOneAndUpdate(
       { _id: blogId, isDeleted: false },
@@ -123,22 +116,40 @@ const updateBlog = async function (req, res) {
       },
       { new: true }
     );
-
+    if (!blog)
+      return res
+        .status(404)
+        .send({ status: false, data: "the document already deleted" });
     return res.status(200).send({ status: true, data: blog });
   } catch (error) {
-   return res.status(500).send(error.message);
+    return res.status(500).send(error.message);
   }
 };
 
 const deleteBlog = async function (req, res) {
   try {
     let blogId = req.params.blogId;
+    let blogIdValid = await blogSchema.findById(blogId);
+    if (!blogIdValid)
+      return res
+        .status(400)
+        .send({ status: true, data: "the blog does not Exist" });
+
+    //     const isValidObjectId = function (ObjectId) {
+    //       return mongoose.Types.ObjectId.isValid(ObjectId)
+    //   }
+    //   if (!isValidObjectId(blogId)) {
+    //     return res.send({ status: false, msg: "Please Enter Valid ID" })
+    // }
+
     let deletedoc = await blogSchema
       .findOne({ _id: blogId })
-      .select({ isDeleted: 1,_id:0 });
+      .select({ isDeleted: 1, _id: 0 });
 
-    if (!deletedoc.isDeleted == false)
-      return res.status(404).send({ status: false, data: "the id Does't Exist" });
+    if (deletedoc.isDeleted === true)
+      return res
+        .status(404)
+        .send({ status: false, data: "the blog is alreday deleted" });
 
     let deleteDoc = await blogSchema.findOneAndUpdate(
       { _id: blogId },
@@ -152,35 +163,41 @@ const deleteBlog = async function (req, res) {
 };
 
 const deleteByKeys = async function (req, res) {
-    try{
-  let body = req.query;
-  let { category, authorId, tags, subcategory, isPublished } = body;
-  let deleteBykey = await blogSchema.find({
-    $or: [
-      { category: category },
-      { authorId: authorId },
-      { tags: tags },
-      { subcategory: subcategory },
-      { isPublished: isPublished },
-    ],
-  });
-// console.log(deleteBykey)
-  if(!deleteBykey.isDeleted==false) return res.status(404).send({status:false,data:"the Blog is already Deleted"})
-let arr=[]
-for(let i=0;i<deleteBykey.length;i++){
-    let arr1=deleteBykey[i]._id.toString()
-    arr.push(arr1)
-}
-// console.log(arr)
-  let deleteOne=await blogSchema.findByIdAndUpdate({_id:arr}, 
-    {$set:{isDeleted:true}},
-        {new:true})
- return res.status(200).send({status:true,data:deleteOne})
+  try {
+    let data = req.query
+    let authorId=data.authorId
+    let validAid=mongoose.Types.ObjectId.isValid(authorId)
+    if(!validAid) return res.status(404).send({ status: false, msg:"Give the valid authorID" })
+  
+    let filter = { ...data }   //stores the query params in the object obj-destructure-object literals
+    let checkBlog = await blogSchema.findOne(filter)
+  
+    if (!checkBlog)
+      return res.status(404).send({ status: false, msg: "no such blog exist...! " })
+
+    if (checkBlog.isDeleted === true)
+      return res.status(400).send({ status: false, msg: "blog is already deleted...!" })
+
+    let blogId = checkBlog._id
+    // console.log(blogId )
+    let deleteBlog = await blogSchema.findOneAndUpdate(
+      filter,
+      { $set: { isDeleted: true, deletedAt: new Date() } },
+      { new: true }
+    )
+    res.status(201).send({ status: true, data: deleteBlog })
+
+  } catch (err) {
+    res.status(500).send({ status: false, msg: err.message })
+  }
 
 }
-catch(err){
-  return  res.status(500).send({status:false,data:err.message})
-}
-}
 
-module.exports = { createBlogs, getAllBlogs, updateBlog, deleteBlog,deleteByKeys };
+
+module.exports = {
+  createBlogs,
+  getAllBlogs,
+  updateBlog,
+  deleteBlog,
+  deleteByKeys,
+};
