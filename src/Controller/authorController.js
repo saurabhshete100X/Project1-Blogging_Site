@@ -1,8 +1,8 @@
 const authorModel=require('../Model/authorModel')
-let {isValidEmail,isValid,isValidPassword,isValidName}=require('../Validation/validatorAuthor')
+let {isValidEmail,isValids,isValidPassword,isValidName,keyValid}=require('../Validation/validator')
 let jwt=require('jsonwebtoken')
 
-const validator=require("validator")
+
 
 // const {emailRegex}=require('../middleWare/validator')//destructure
 const createAuthor=async function(req,res){
@@ -21,13 +21,13 @@ const createAuthor=async function(req,res){
     if(!password) return res.status(400).send({status:false,message:"The password is required"})
 
     
-    if(!isValid(fname)) return res.status(400).send({status:false,message:"Don't leave fname name Empty"})
+    if(!isValids(fname)) return res.status(400).send({status:false,message:"Don't leave fname name Empty"})
     if(!isValidName(fname)) return res.status(400).send({status:false,message:"Please give Valid first Name"})
     if(!isValidName(lname)) return res.status(400).send({status:false,message:"Please give Valid last Name"})
-    if(!isValid(lname)) return res.status(400).send({status:false,message:"Don't leave lname name Empty"})
-    if(!isValid(email)) return res.status(400).send({status:false,message:"Don't leave Email Empty"})
-    if(!isValid(title)) return res.status(400).send({status:false,message:"Don't leave title Empty"})
-    if(!isValid(password)) return res.status(400).send({status:false,message:"Don't leave password Empty"})
+    if(!isValids(lname)) return res.status(400).send({status:false,message:"Don't leave lname name Empty"})
+    if(!isValids(email)) return res.status(400).send({status:false,message:"Don't leave Email Empty"})
+    if(!isValids(title)) return res.status(400).send({status:false,message:"Don't leave title Empty"})
+    if(!isValids(password)) return res.status(400).send({status:false,message:"Don't leave password Empty"})
     
     // if(!validator.isEmail(email)) return res.status(400).send({status:false,message:"Please Enter valid Email"})
     if(!isValidEmail(email)) return res.status(400).send({status:false,message:"Please Enter valid Email"})
@@ -51,6 +51,7 @@ const createAuthor=async function(req,res){
 let loginAuthor=async function(req,res){
     try{
     let body=req.body
+    if(!keyValid(body)) return res.status(400).send({status:false,data:"input from body is required"})
     let {email,password}=body
 
     let validLogin=await authorModel.findOne({email:email,password:password})
