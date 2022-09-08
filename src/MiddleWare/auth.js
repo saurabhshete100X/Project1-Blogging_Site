@@ -12,10 +12,10 @@ let authentication = async function (req, res, next) {
     if (!token) {
       return res
         .status(400)
-        .send({ status: false, data: "Header is required" });
+        .send({ status: false, data: "Token  is mandatory" });
     }
     let decodedToken = jwt.verify(token, "our_first_project");
-
+    console.log(decodedToken)
     if (!decodedToken)
       return res.status(400).send({ status: false, data: "token is Invalid" });
 
@@ -59,5 +59,4 @@ let authorization = async function (req, res, next) {
 
 
 
-module.exports.authentication = authentication;
-module.exports.authorization = authorization;
+module.exports= {authentication,authorization} 

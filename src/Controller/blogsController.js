@@ -285,10 +285,10 @@ const deleteByKeys = async function (req, res) {
           { $set: { isDeleted: true, deletedAt: new Date() } },
           { new: true }
         );
-        if (deleteBlog.isDeleted == true)
+        if (deleteBlog.isDeleted == true &&deleteBlog.isPublished==true)
           return res
             .status(400)
-            .send({ status: false, msg: "blog is already deleted...!" });
+            .send({ status: false, msg: "blog is already deleted and you can't delete the published blog" });
 
         return res.status(200).send({ status: true, data: deleteBlog });
       } else {
