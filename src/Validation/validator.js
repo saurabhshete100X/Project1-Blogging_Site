@@ -26,13 +26,6 @@ const isValidString = function(value) {
              return true;
           }
           
-          const isValidtagsandSubcategory=function(value) {
-            if (typeof value === 'undefined' || value === null) return false
-            if (typeof value === 'string' && value.trim().length === 0) return false
-            if (typeof value === "object" && Array.isArray(value) === true) return true;
-            return true;
-          }
-          
           const keyValid=function(value){
             if(Object.keys(value).length>0) return true
             return false
@@ -41,4 +34,4 @@ const isValidString = function(value) {
           const idCharacterValid=function(value){
             return mongoose.Types.ObjectId.isValid(value)
           }
-module.exports = {isValidEmail,isValids,isValidPassword,isValidName,isValidString,isValidtagsandSubcategory,keyValid,idCharacterValid}
+module.exports = {isValidEmail,isValids,isValidPassword,isValidName,isValidString,keyValid,idCharacterValid}

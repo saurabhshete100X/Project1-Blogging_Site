@@ -14,10 +14,16 @@ let authentication = async function (req, res, next) {
         .status(400)
         .send({ status: false, data: "Token  is mandatory" });
     }
-    let decodedToken = jwt.verify(token, "our_first_project");
+    let decodedToken = jwt.verify(token, "our_first_project",function(err){
+      if(err){
+        return res.status(400).send({ status: false, data: "token is Invalid" });
+      }
+    });
+
     console.log(decodedToken)
     if (!decodedToken)
-      return res.status(400).send({ status: false, data: "token is Invalid" });
+      return res.status(400).send({ status: false, message: "token is Invalid" });
+    req['decodedToken']=decodedToken
 
     next();
   } catch (err) {
@@ -56,6 +62,7 @@ let authorization = async function (req, res, next) {
     return res.status(500).send({ status: false, data: err.message });
   }
 };
+
 
 
 
