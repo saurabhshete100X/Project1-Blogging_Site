@@ -19,8 +19,7 @@ router.put('/blogs/:blogId',mid1.authentication,mid1.authorization,blogsControll
 router.delete('/blogs/:blogId',mid1.authentication,mid1.authorization,blogsController.deleteBlog)
 
 
-router.delete('/blogs',blogsController.deleteByKeys)
-
+router.delete('/blogs',mid1.authentication,blogsController.deleteByKeys)
 
 
 

@@ -10,22 +10,17 @@ let authentication = async function (req, res, next) {
       token = req.headers["x-Api-Key"];
     }
     if (!token) {
-      return res
-        .status(400)
-        .send({ status: false, data: "Token  is mandatory" });
+      return res.send({ status: false, data: "Token  is mandatory" });
     }
-    let decodedToken = jwt.verify(token, "our_first_project",function(err){
+    let decodedToken = jwt.verify(token, "our_first_project", function(err) { 
       if(err){
-        return res.status(400).send({ status: false, data: "token is Invalid" });
+          return res.status(400).send({status:false,msg:"the token is invalid"})
       }
-    });
+  }); 
 
-    console.log(decodedToken)
-    if (!decodedToken)
-      return res.status(400).send({ status: false, message: "token is Invalid" });
     req['decodedToken']=decodedToken
 
-    next();
+    next();  
   } catch (err) {
     return res.status(500).send({ status: false, data: err.message });
   }

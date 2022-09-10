@@ -23,9 +23,9 @@ const isValidName = function(name){
 const isValidString = function(value) {
             if (typeof value === 'undefined' || value === null) return false
             if (typeof value === 'string' && value.trim().length === 0) return false
-             return true;
+           return true
           }
-          
+           
           const keyValid=function(value){
             if(Object.keys(value).length>0) return true
             return false
@@ -35,3 +35,4 @@ const isValidString = function(value) {
             return mongoose.Types.ObjectId.isValid(value)
           }
 module.exports = {isValidEmail,isValids,isValidPassword,isValidName,isValidString,keyValid,idCharacterValid}
+ 
