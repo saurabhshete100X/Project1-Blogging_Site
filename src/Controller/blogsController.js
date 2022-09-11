@@ -3,12 +3,14 @@ const authorModel = require("../Model/authorModel");
 let {
   isValidString,
   keyValid,
-  idCharacterValid,
+  idCharacterValid
 } = require("../Validation/validator");
 let mongoose = require("mongoose");
 let jwt = require("jsonwebtoken");
 const { query } = require("express");
 
+
+//Creating Blogs=======================================>
 const createBlogs = async function (req, res) {
   try {
     const data = req.body;
@@ -62,13 +64,15 @@ const createBlogs = async function (req, res) {
         .send({ status: false, data: "authorID is not valid String" });
 
     const createBlog = await blogSchema.create(data);
-    res.status(201).send({ status: true, data: createBlog });
+  return  res.status(201).send({ status: true, data: createBlog });
   } catch (err) {
     return res.status(500).send({ status: false, data: err.message });
   }
 };
 
-//Get Blogs
+
+
+//Get Blogs==================================>
 const getAllBlogs = async function (req, res) {
   try {
     const data = req.query;
@@ -85,7 +89,7 @@ const getAllBlogs = async function (req, res) {
           msg: "Blog doesn't Exists,Alredy deleted",
         });
       }
-      res.status(200).send({ status: true, data: blog });
+     return res.status(200).send({ status: true, data: blog });
     }
     //get data by query param
     if (keyValid(data)) {
@@ -99,14 +103,16 @@ const getAllBlogs = async function (req, res) {
           msg: "No such blog exist, Please provide correct data.",
         });
       }
-      res.status(200).send({ status: true, data: getBlog });
+     return res.status(200).send({ status: true, data: getBlog });
     }
   } catch (error) {
-    res.status(500).send({ status: false, Error: error.message });
+   return res.status(500).send({ status: false, Error: error.message });
   }
 };
 
 
+
+//To update Blog=======================>
 const updateBlog = async function (req, res) {
   try {
 
@@ -123,7 +129,6 @@ const updateBlog = async function (req, res) {
 
       if(title){ 
         if(!isValidString(title)) return res.status(404).send({ status: false, msg:"the Enter valid title" });
-
       }
       if(body){
         if(!isValidString(body)) return res.status(404).send({ status: false, msg:"the Enter valid Body" });
@@ -150,14 +155,13 @@ const updateBlog = async function (req, res) {
           return res.status(200).send({ status: true, data: blog });
           
   } catch (error) { 
-      console.log(error)
       return res.status(500).send({ status: false, Error: error.message })
   }
 
 }
 
 
-
+//To delete the Blog form path Params================================>
 const deleteBlog = async function (req, res) {
   try {
     let blogId = req.params.blogId;
@@ -166,13 +170,13 @@ const deleteBlog = async function (req, res) {
 
     if (!blogIdValid)
       return res
-        .status(400)
-        .send({ status: true, data: "the blog does not Exist" });
+        .status(404)
+        .send({ status: false, data: "the blog does not Exist" });
 
     let deletedoc = await blogSchema
       .findOne({ _id: blogId })
       .select({ isDeleted: 1, _id: 0 });
-
+      
     if (deletedoc.isDeleted === true)
       return res
         .status(404)
@@ -183,23 +187,26 @@ const deleteBlog = async function (req, res) {
       { $set: { isDeleted: true } },
       { new: true }
     );
-    res.status(200).send();
+   return res.status(200).send();
   } catch (err) {
     return res.status(500).send({ status: false, data: err.message });
   }
 };
 
 
-
+//deleting the blogs by query params=======================================>
 const deleteByKeys = async function (req, res) {
   try {
-
+        let decodedId=req.decodedToken.userId
+    
       const data = req.query
-      let {authorId,category,subcategory,tags,isPublished}=data
-      let decodedToken=req.decodedToken
-      if(decodedToken.userId!==authorId) return res.status(404).send({ status: false, msg:"you are not the Authorized person to delete" })
+      let {authorId,category,subcategory,tags}=data
+     
+      if(decodedId!==authorId) return res.status(404).send({ status: false, msg:"you are not the Authorized person to delete" })
+   
 
-      if (!keyValid(data)) return res.status(400).send({ status: false, msg: "Please enter filters" })
+
+      if (!keyValid(data)) return res.status(400).send({ status: false, msg: "Please give input" })
 
       // checking , if any filter has no value
       if (category) {
@@ -215,17 +222,14 @@ const deleteByKeys = async function (req, res) {
           if (!isValidString(authorId)) return res.status(400).send({ status: false, msg: 'please provide authorId' })
           if(!idCharacterValid(authorId)) return res.status(400).send({ status: false, msg: 'please Give the valid AuthorID' })
       }
-      if (isPublished) {
-          if (!isValidString(isPublished)) return res.status(400).send({ status: false, msg: 'please provide isPublished' })
-      }
-
+      
       // checking if blog exist with given filters 
       const blog = await blogSchema.find(data)
       if (!keyValid(blog)) return res.status(404).send({ msg: "No blog exist with given filters " })
 
       // checking if blog already deleted 
       let blogs = await blogSchema.find({ authorId:authorId, isDeleted: false })
-      if (!keyValid(blogs)) return res.status(400).send({ status: false, msg: "Blogs are already deleted" })
+      if (!keyValid(blogs)) return res.status(400).send({ status: false, msg: "Blogs are already deleted"})
 
       // deleting blog
       const deletedBlog = await blogSchema.updateMany(data, {$set:{ isDeleted: true, deletedAt: new Date() }}, { new: true })
@@ -236,7 +240,7 @@ const deleteByKeys = async function (req, res) {
       res.status(500).send({ status: false, msg: error.message });
   }
 };
-
+ 
 
 
 

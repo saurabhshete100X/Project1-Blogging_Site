@@ -1,5 +1,4 @@
 const express = require('express');
-
 const router = express.Router();
 const authorController=require('../Controller/authorController')
 const blogsController=require('../Controller/blogsController')

@@ -3,29 +3,30 @@ const blogsModel = require("../Model/blogsModel");
 let mongoose=require('mongoose')
 let{idCharacterValid}=require('../Validation/validator')
 
+
+//Authentication======================================================>
 let authentication = async function (req, res, next) {
   try {
     let token = req.headers["x-api-key"];
     if (!token) {
-      token = req.headers["x-Api-Key"];
-    }
-    if (!token) {
       return res.send({ status: false, data: "Token  is mandatory" });
     }
-    let decodedToken = jwt.verify(token, "our_first_project", function(err) { 
-      if(err){
-          return res.status(400).send({status:false,msg:"the token is invalid"})
-      }
-  }); 
+    let decodedToken = jwt.verify(token, "our_first_project")
 
-    req['decodedToken']=decodedToken
+    if(!decodedToken )  return res.status(400).send({status:false,msg:"the token is invalid"})
 
-    next();  
-  } catch (err) {
+    req["decodedToken"]=decodedToken
+
+    next();
+
+  } catch (err) { 
     return res.status(500).send({ status: false, data: err.message });
   }
 };
+ 
 
+
+//Authorization by blogId through pathParams===================================>
 let authorization = async function (req, res, next) {
   try {
     
@@ -41,6 +42,7 @@ let authorization = async function (req, res, next) {
     let findBlogId = await blogsModel
       .findById(blogId)
       .select({ authorId: 1, _id: 0 });
+
     if (!findBlogId)
       return res.status(400).send({ status: false, msg: "blogId is invalid!" });
     let userLoggedIn = decodedToken.userId;
