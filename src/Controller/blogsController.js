@@ -184,10 +184,10 @@ const deleteBlog = async function (req, res) {
 
     let deleteBlog = await blogSchema.findOneAndUpdate(
       { _id: blogId },
-      { $set: { isDeleted: true } },
+      { $set: { isDeleted: true ,deletedAt:new Date()} },
       { new: true }
     );
-   return res.status(200).send();
+   return res.status(200).send({status:true,msg:""});
   } catch (err) {
     return res.status(500).send({ status: false, data: err.message });
   }
@@ -200,16 +200,25 @@ const deleteByKeys = async function (req, res) {
         let decodedId=req.decodedToken.userId
     
       const data = req.query
-      let {authorId,category,subcategory,tags}=data
-     
-      if(decodedId!==authorId) return res.status(404).send({ status: false, msg:"you are not the Authorized person to delete" })
-   
-
 
       if (!keyValid(data)) return res.status(400).send({ status: false, msg: "Please give input" })
 
+      let {authorId,category,subcategory,tags,isPublished}=data
+      
+      
+   
+
       // checking , if any filter has no value
-      if (category) {
+
+      if(!authorId)  return res.status(400).send({ status: false, msg: 'please provide authorId' })
+
+      if(!isPublished) return res.status(400).send({ status: false, msg: 'please provide isPublished' })
+
+    if (authorId) {
+        if(!idCharacterValid(authorId)) return res.status(400).send({ status: false, msg: 'please Give the valid AuthorID' })
+    }
+
+     if (category) {
           if (!isValidString(category)) return res.status(400).send({ status: false, msg: 'please provide category' })
       }
       if (subcategory) {
@@ -218,11 +227,9 @@ const deleteByKeys = async function (req, res) {
       if (tags) {
           if (!isValidString(tags)) return res.status(400).send({ status: false, msg: 'please provide tags' })
       }
-      if (authorId) {
-          if (!isValidString(authorId)) return res.status(400).send({ status: false, msg: 'please provide authorId' })
-          if(!idCharacterValid(authorId)) return res.status(400).send({ status: false, msg: 'please Give the valid AuthorID' })
-      }
       
+      if(decodedId!==authorId) return res.status(404).send({ status: false, msg:"you are not the Authorized person to delete" }) 
+
       // checking if blog exist with given filters 
       const blog = await blogSchema.find(data)
       if (!keyValid(blog)) return res.status(404).send({ msg: "No blog exist with given filters " })
@@ -236,7 +243,7 @@ const deleteByKeys = async function (req, res) {
       if (!deletedBlog) return res.status(404).send({ status: false, msg: "No such blog found" })
       return res.status(200).send({ msg: "blog deleted successfully" })
   }
-  catch (error) {
+  catch (error) {   
       res.status(500).send({ status: false, msg: error.message });
   }
 };

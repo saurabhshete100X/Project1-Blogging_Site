@@ -61,7 +61,7 @@ let loginAuthor=async function(req,res){
         members:"4",
     },"our_first_project")
     res.header('x-api-key',token)
-    res.status(200).send({status:true,data:token})
+ return res.status(200).send({status:true,data:token})
 
 }
 catch(err){
